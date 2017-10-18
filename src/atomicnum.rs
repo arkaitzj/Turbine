@@ -185,7 +185,7 @@ unsafe fn atomic_compare_and_swap<T>(dst: *mut T, old:T, new:T, order: Ordering)
         Ordering::AcqRel  => intrinsics::atomic_cxchg_acqrel(dst, old, new),
         Ordering::Relaxed => intrinsics::atomic_cxchg_relaxed(dst, old, new),
         _ => intrinsics::atomic_cxchg(dst, old, new),
-    }
+    }.0
 }
 
 #[inline]
