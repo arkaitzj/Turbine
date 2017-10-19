@@ -667,6 +667,7 @@ mod test {
 
     #[test]
     fn test_write_read_many() {
+        let _ = env_logger::init();
         let mut t: Turbine<TestSlot> = Turbine::new(1024);
         let e1 = t.ep_new().unwrap();
 
@@ -675,20 +676,20 @@ mod test {
 
         let _future = thread::spawn(move|| {
             let counter = AtomicUsize::new(0);
+            let mut last = -1;
+            let mut previous = 0;
             event_processor.start::<_, BusyWait>(|data: &[TestSlot]| -> Result<(),()> {
-                let mut last = 0;
                 //debug!("EP::data.len: {}", data.len());
-                let mut previous = 0;
 
                 for x in data.iter() {
                     debug!("EP:: last: {}, value: {}", last, x.value);
-                    assert!(last + 1 == x.value);
+                    assert!(last + 1 == x.value, "Expecting {} but got {}", last + 1, x.value);
                     previous = counter.fetch_add(1, Ordering::SeqCst);
                     last = x.value;
                     debug!("EP::counter: {}", counter.load(Ordering::SeqCst));
                 }
 
-                if previous == 1000 {
+                if previous == 999 {
                     return Err(());
                 } else {
                     return Ok(());
@@ -721,9 +722,9 @@ mod test {
         let (tx, rx): (Sender<isize>, Receiver<isize>) = channel();
 
         let _future = thread::spawn(move|| {
+            let mut counter = 0;
+            let mut last = -1;
             event_processor.start::<_, BusyWait>(|data: &[TestSlot]| -> Result<(),()> {
-                let mut counter = 0;
-                let mut last = -1;
                 for x in data.iter() {
                     debug!(">>>>>>>>>> last: {}, value: {}, -- {}", last, x.value, last + 1 == x.value);
                     assert!(last + 1 == x.value);
@@ -763,9 +764,9 @@ mod test {
 
 
         let _future = thread::spawn(move|| {
+            let mut counter = 0;
+            let mut last = -1;
             event_processor.start::<_, BusyWait>(|data: &[TestSlot]| -> Result<(),()> {
-                let mut counter = 0;
-                let mut last = -1;
                 //debug!("EP::data.len: {}", data.len());
 
                 for x in data.iter() {
@@ -813,10 +814,10 @@ mod test {
 
 
         let _future = thread::spawn(move|| {
+            let mut rng = thread_rng();
+            let mut counter = 0;
+            let mut last = -1;
             event_processor.start::<_, BusyWait>(|data: &[TestSlot]| -> Result<(),()> {
-                let mut rng = thread_rng();
-                let mut counter = 0;
-                let mut last = -1;
                 let sleep_time = Duration::from_millis(rng.gen_range(0, 100));
                 debug!("												SLEEPING {}s {}ns", sleep_time.as_secs(), sleep_time.subsec_nanos());
                 thread::sleep(sleep_time);
@@ -867,9 +868,9 @@ mod test {
         let (tx, rx): (Sender<isize>, Receiver<isize>) = channel();
 
         let _future = thread::spawn(move|| {
+            let mut counter = 0;
+            let mut last = -1;
             event_processor.start::<_, BusyWait>(|data: &[TestSlot]| -> Result<(),()> {
-                let mut counter = 0;
-                let mut last = -1;
                 for x in data.iter() {
                     //debug!(">>>>>>>>>> last: {}, value: {}, -- {}", last, x.value, last + 1 == x.value);
                     assert!(last + 1 == x.value);
@@ -892,9 +893,9 @@ mod test {
         let (tx2, rx2): (Sender<isize>, Receiver<isize>) = channel();
 
         let _future = thread::spawn(move|| {
+            let mut counter = 0;
+            let mut last = -1;
             event_processor2.start::<_, BusyWait>(|data: &[TestSlot]| -> Result<(),()> {
-                let mut counter = 0;
-                let mut last = -1;
                 for x in data.iter() {
                     //debug!(">>>>>>>>>> last: {}, value: {}, -- {}", last, x.value, last + 1 == x.value);
                     assert!(last + 1 == x.value);
@@ -937,9 +938,9 @@ mod test {
         let (tx, rx): (Sender<isize>, Receiver<isize>) = channel();
 
         let _future = thread::spawn(move|| {
+            let mut counter = 0;
+            let mut last = -1;
             event_processor.start::<_, BusyWait>(|data: &[TestSlot]| -> Result<(),()> {
-                let mut counter = 0;
-                let mut last = -1;
                 for x in data.iter() {
                     //debug!(">>>>>>>>>> last: {}, value: {}, -- {}", last, x.value, last + 1 == x.value);
                     assert!(last + 1 == x.value);
@@ -962,9 +963,10 @@ mod test {
         let (tx2, rx2): (Sender<isize>, Receiver<isize>) = channel();
 
         let _future = thread::spawn(move|| {
+
+            let mut counter = 0;
+            let mut last = -1;
             event_processor2.start::<_, BusyWait>(|data: &[TestSlot]| -> Result<(),()> {
-                let mut counter = 0;
-                let mut last = -1;
                 for x in data.iter() {
                     //debug!(">>>>>>>>>> last: {}, value: {}, -- {}", last, x.value, last + 1 == x.value);
                     assert!(last + 1 == x.value);
@@ -1031,8 +1033,8 @@ mod test {
         let (tx, rx): (Sender<isize>, Receiver<isize>) = channel();
 
         let _future = thread::spawn(move|| {
+            let mut counter = 0;
             event_processor.start::<_, BusyWait>(|data: &[TestSlot]| -> Result<(),()> {
-                let mut counter = 0;
                 for _ in data.iter() {
                     counter += data[0].value;
                 }
@@ -1080,8 +1082,9 @@ mod test {
         let mut latencies = Vec::with_capacity(1000000);
 
         let _future = thread::spawn(move|| {
+            let mut counter: isize = 0;
             event_processor.start::<_, BusyWait>(|data: &[TestSlotU64]| -> Result<(),()> {
-                let mut counter: isize = 0;
+
                 for d in data.iter() {
                     let end = precise_time_ns();
                     let total = ((end - d.value) as i64).abs() as u64;
