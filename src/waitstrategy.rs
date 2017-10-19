@@ -32,7 +32,7 @@ pub struct BusyWait {
 
 impl BusyWait {
     fn can_read(&self, sequence: u64, deps: &Vec<&Padded64>) -> Option<u64> {
-        let mut min_cursor = 18446744073709551615;
+        let mut min_cursor : u64 = <u64>::max_value();
 
         for v in deps.iter() {
             let cursor = v.load();

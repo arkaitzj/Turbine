@@ -68,6 +68,10 @@ impl<T: Slot> EventProcessor<T> {
         for ep in dep_eps.iter() {
             deps.push(&(*self.cursors).as_slice()[*ep]);
         }
+        if deps.len() == 0 {
+            let ref root_cursor = self.cursors[0];
+            deps.push(root_cursor);
+        }
         drop(dep_eps);
 
         let ref cursor = &(*self.cursors).as_slice()[self.token + 1];
@@ -107,7 +111,7 @@ impl<T: Slot> EventProcessor<T> {
             // know it will be returned after the function call ends.  The slice will
             // be dropped after the unsafe block, and *then* we increment our cursor
             let mut status = unsafe {
-                let data: &[T] = self.ring.get(from, to);
+                let data: &[T] = self.ring.get(from, to-from);
                 f(data)
             };
 

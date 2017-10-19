@@ -16,3 +16,6 @@ log = "*"
 time = "*"
 rand = "*"
 libc = "*"
+
+[dev-dependencies]
+env_logger = "*"

@@ -80,6 +80,7 @@
 extern crate log;
 
 #[cfg(test)] extern crate libc;
+#[cfg(test)] extern crate env_logger;
 #[cfg(test)] extern crate time;
 #[cfg(test)] extern crate rand;
 
@@ -380,7 +381,7 @@ impl<T: Slot> Turbine<T> {
         if self.until == (self.current_pos & self.mask) {
             debug!("*****");
 
-            let mut min_cursor = 18446744073709551615;
+            let mut min_cursor = <u64>::max_value();
             for v in self.cursors.iter().skip(1) {
                 debug!("CURSOR: {}", v.load());
                 //let diff = self.current_pos - v.load();
@@ -414,12 +415,13 @@ mod test {
     use std::{thread, u64};
     use std::time::Duration;
     use time::precise_time_ns;
+    use env_logger;
 
     use Turbine;
     use Slot;
     use waitstrategy::BusyWait;
     
-    #[derive(Copy, Clone)]
+    #[derive(Copy, Clone, Debug)]
     struct TestSlot {
         pub value: i32
     }
